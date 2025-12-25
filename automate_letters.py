@@ -57,10 +57,11 @@ for row in ws.iter_rows(values_only=True):
 
     title = paragraphs[0]
     first = paragraphs[1]
-    second = paragraphs[2] if len(paragraphs) > 2 else ""
+    second = f"{paragraphs[2]} Sărbători fericite și un An Nou cât mai reușit!" if len(paragraphs) > 2 else ""
+
     final_msg = "\n\n".join(paragraphs[3:]) if len(paragraphs) > 3 else ""
 
-    final_text = f"{final_msg}\nCu drag,\nȘtefan, Robert și Iseline"
+    final_text = f"Cu drag,\nȘtefan, Robert și Iseline"
 
     driver.get(URL)
 
@@ -101,6 +102,7 @@ for row in ws.iter_rows(values_only=True):
     link = link_input.get_attribute("value")
 
     out_ws.append([name, phone, email, link])
+    break
 
 
 out_wb.save(OUTPUT_EXCEL)
