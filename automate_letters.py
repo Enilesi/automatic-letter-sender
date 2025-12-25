@@ -102,7 +102,7 @@ for row in ws.iter_rows(values_only=True):
     link = link_input.get_attribute("value")
 
     out_ws.append([name, phone, email, link])
-    break
+    
 
 
 out_wb.save(OUTPUT_EXCEL)
