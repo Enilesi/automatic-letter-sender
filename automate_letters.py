@@ -1,5 +1,5 @@
 import warnings
-warnings.filterwarnings("ignore", category=UserWarning)
+warnings.filterwarnings("ignore")
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -12,7 +12,8 @@ import time
 import os
 
 URL = "https://oscrisoare.ro/compune.php"
-IMAGE_PATH = os.path.abspath("img.jpeg")
+IMAGE_MAIN = os.path.abspath("img.png")
+IMAGE_BG = os.path.abspath("bk.png")
 INPUT_EXCEL = "input.xlsx"
 OUTPUT_EXCEL = "output.xlsx"
 
@@ -33,16 +34,21 @@ ws = wb.active
 
 out_wb = Workbook()
 out_ws = out_wb.active
-out_ws.append(["Name", "Letter Link"])
+out_ws.append(["Nume Prenume", "Telefon", "Email", "Link Scrisoare"])
 
 for row in ws.iter_rows(values_only=True):
     name = row[0]
-    message = row[2]
+    phone = row[1]
+    email = row[2]
+    message = row[3]
+
 
     if not name or not message:
         continue
 
     name = str(name).strip()
+    phone = str(phone).strip() if phone else ""
+    email = str(email).strip() if email else ""
     message = str(message).strip()
 
     paragraphs = [p.strip() for p in message.split("\n\n") if p.strip()]
@@ -52,7 +58,9 @@ for row in ws.iter_rows(values_only=True):
     title = paragraphs[0]
     first = paragraphs[1]
     second = paragraphs[2] if len(paragraphs) > 2 else ""
-    final = "\n\n".join(paragraphs[3:]) if len(paragraphs) > 3 else ""
+    final_msg = "\n\n".join(paragraphs[3:]) if len(paragraphs) > 3 else ""
+
+    final_text = f"{final_msg}\nCu drag,\nȘtefan, Robert și Iseline"
 
     driver.get(URL)
 
@@ -63,7 +71,7 @@ for row in ws.iter_rows(values_only=True):
     fill_text(driver, wait, By.ID, "title", title)
     fill_text(driver, wait, By.ID, "text1", first)
     fill_text(driver, wait, By.ID, "text2", second)
-    fill_text(driver, wait, By.ID, "text3", final)
+    fill_text(driver, wait, By.ID, "text3", final_text)
 
     wait_click(driver, wait, By.CSS_SELECTOR, "a.fonturi")
     time.sleep(0.5)
@@ -76,10 +84,14 @@ for row in ws.iter_rows(values_only=True):
     wait_click(driver, wait, By.CSS_SELECTOR, "a.imagini")
     time.sleep(0.5)
 
-    driver.find_element(By.ID, "file_upload").send_keys(IMAGE_PATH)
+    driver.find_element(By.ID, "file_upload").send_keys(IMAGE_MAIN)
     time.sleep(0.5)
+    wait_click(driver, wait, By.CSS_SELECTOR, "form#upload input[type='submit']")
+    time.sleep(1.5)
 
-    wait_click(driver, wait, By.CSS_SELECTOR, "input[name='submit'][value='Upload']")
+    driver.find_element(By.ID, "file_uploadbg").send_keys(IMAGE_BG)
+    time.sleep(0.5)
+    wait_click(driver, wait, By.CSS_SELECTOR, "form#upload2 input[type='submit']")
     time.sleep(1.5)
 
     wait_click(driver, wait, By.ID, "save")
@@ -88,7 +100,8 @@ for row in ws.iter_rows(values_only=True):
     link_input = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "input.link")))
     link = link_input.get_attribute("value")
 
-    out_ws.append([name, link])
+    out_ws.append([name, phone, email, link])
+
 
 out_wb.save(OUTPUT_EXCEL)
 driver.quit()
